@@ -115,22 +115,25 @@ jobs:
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-cainjector -n cert-manager
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-webhook -n cert-manager
 
-        # 2. Download KServe manifest and remove kube-rbac-proxy container to prevent image pull errors
+        # 2. Download KServe manifest and safely remove kube-rbac-proxy using PyYAML
         curl -sL https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml -o kserve.yaml
+        pip install pyyaml
         python3 -c "
+        import yaml
+
         with open('kserve.yaml', 'r') as f:
-            content = f.read()
-        # Remove the kube-rbac-proxy container block cleanly
-        parts = content.split('name: kube-rbac-proxy')
-        if len(parts) > 1:
-            # Reconstruct yaml omitting the rbx-proxy container definition block
-            rest = parts[1].split('---')[0]
-            # Find where the next container or volume starts
-            sub_parts = rest.split('securityContext:')
-            new_content = parts[0] + ('securityContext:' + sub_parts[1] if len(sub_parts) > 1 else '') + ('---'.join(parts[1].split('---')[1:]))
-            content = new_content
+            docs = list(yaml.safe_load_all(f))
+
+        new_docs = []
+        for doc in docs:
+            if doc and doc.get('kind') == 'Deployment' and doc.get('metadata', {}).get('name') == 'kserve-controller-manager':
+                containers = doc['spec']['template']['spec']['containers']
+                doc['spec']['template']['spec']['containers'] = [c for c in containers if c.get('name') != 'kube-rbac-proxy']
+            if doc:
+                new_docs.append(doc)
+
         with open('kserve.yaml', 'w') as f:
-            f.write(content)
+            yaml.safe_dump_all(new_docs, f)
         "
         kubectl apply -f kserve.yaml
 
