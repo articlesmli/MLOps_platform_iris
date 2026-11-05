@@ -23,11 +23,13 @@ resource "kubernetes_manifest" "iris_kserve_service" {
   manifest = {
     apiVersion = "serving.kserve.io/v1beta1"
     kind       = "InferenceService"
-    metadata = {
+ metadata = {
       name      = "iris-inference-service"
       namespace = "kserve"
       annotations = {
-        "serving.kserve.io/deploymentMode" = "Standard"
+        "serving.kserve.io/deploymentMode"   = "Standard"
+        "sidecar.istio.io/inject"            = "false"
+        "serving.kserve.io/autoscalingClass" = "raw"
       }
     }
     spec = {
