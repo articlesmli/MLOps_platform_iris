@@ -1,7 +1,4 @@
-Here is your clean, professional **`README.md`** file formatted for a repository root. It summarizes the architecture, tech stack, and workflows cleanly without pasting the full script code into the documentation:
-
-```markdown
-# 🚀 Enterprise MLOps Platform (`MLOps_platform_iris`)
+# Enterprise MLOps Platform (`MLOps_platform_iris`)
 
 An end-to-end, enterprise-grade MLOps platform built with a modular, config-driven architecture[cite: 1]. While pre-configured with the **Iris dataset** as a baseline smoke test[cite: 1], the platform is designed to seamlessly swap out datasets and models for enterprise computer vision, NLP, or tabular workflows[cite: 1].
 
@@ -9,7 +6,7 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ```text
                                   +-----------------------+
@@ -41,7 +38,7 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 * **Infrastructure as Code (IaC):** Terraform (Unified Kubernetes Provider, AWS EKS, VPC)
 
@@ -64,7 +61,7 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 MLOps_platform_iris/
@@ -99,7 +96,7 @@ MLOps_platform_iris/
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Environment Setup
 
@@ -174,7 +171,7 @@ python src/drift_monitor.py
 
 ---
 
-## ☁ Cloud Infrastructure & Kubernetes Deployment
+## Cloud Infrastructure & Kubernetes Deployment
 
 ### Provision Infrastructure via Terraform
 
@@ -200,10 +197,7 @@ kubectl apply -f k8s/monitoring/prometheus-monitor.yaml
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the terms of the **MIT License**. See the `LICENSE` file for details.
 
-```
-
-```
