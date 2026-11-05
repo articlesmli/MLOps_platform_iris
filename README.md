@@ -1,11 +1,11 @@
-Here is your updated **`README.md`** file complete with a dedicated **License** section referencing the MIT License:
+Here is your clean, professional **`README.md`** file formatted for a repository root. It summarizes the architecture, tech stack, and workflows cleanly without pasting the full script code into the documentation:
 
 ```markdown
 # 🚀 Enterprise MLOps Platform (`MLOps_platform_iris`)
 
-An end-to-end, enterprise-grade MLOps platform built with a modular, config-driven architecture. While pre-configured with the **Iris dataset** as a baseline smoke test, the platform is designed to seamlessly swap out datasets and models for enterprise computer vision, NLP, or tabular workflows.
+An end-to-end, enterprise-grade MLOps platform built with a modular, config-driven architecture[cite: 1]. While pre-configured with the **Iris dataset** as a baseline smoke test[cite: 1], the platform is designed to seamlessly swap out datasets and models for enterprise computer vision, NLP, or tabular workflows[cite: 1].
 
-This platform leverages modern Cloud Native, GitOps, IaC, and Observability patterns.
+This platform leverages modern Cloud Native, GitOps, IaC, and Observability patterns[cite: 1].
 
 ---
 
@@ -20,10 +20,15 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
  +-------------------+             +----------v----------+             +-------------------+
  | Great Expectations | ---------> | Multi-Model Training| ---------> |  MLflow Registry  |
  | (Data Validation) |             |     (train.py)      |             | & Artifact Store  |
- +-------------------+             +---------------------+             +---------+---------+
-                                                                                 |
- +-------------------+             +---------------------+                       |
- |  Evidently AI     | <---------- |  Inference Service  | <---------------------+
+ +-------------------+             +----------+----------+             +---------+---------+
+                                              |                                  |
+                                   +----------v----------+                       |
+                                   | Model Eval Gate     | <---------------------+
+                                   |    (evaluate.py)    |
+                                   +----------+----------+
+                                              |
+ +-------------------+             +----------v----------+
+ |  Evidently AI     | <---------- |  Inference Service  |
  | (Drift Monitoring)|             | (FastAPI / KServe)  |
  +-------------------+             +----------+----------+
                                               |
@@ -32,20 +37,30 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
                                    | (Metrics & Scrapes) |
                                    +---------------------+
 
-
 ```
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Infrastructure as Code (IaC):** Terraform (AWS EKS, VPC, Security Groups)
+* **Infrastructure as Code (IaC):** Terraform (Unified Kubernetes Provider, AWS EKS, VPC)
+
+
 * **Containerization & Orchestration:** Docker, Kubernetes, KServe (CRD inference serving)
-* **Continuous Integration & Delivery:** GitHub Actions (CI/CD), Argo CD (GitOps deployment)
-* **Model Experiment Tracking & Benchmarking:** MLflow (Multi-model runs)
-* **Data Quality & Validation:** Great Expectations
-* **Security & Vulnerability Scanning:** Trivy
+
+
+* **CI/CD & GitOps:** GitHub Actions (Hardened Pipeline with automated quality gating), Argo CD
+
+
+* **Model Governance:** MLflow (Multi-model tracking & Model Registry integration)
+
+
+* **Data Quality & Security:** Great Expectations, Trivy Vulnerability Scans
+
+
 * **Observability & Monitoring:** Prometheus, Grafana, Evidently AI (Data & Target drift detection)
+
+
 
 ---
 
@@ -54,31 +69,31 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
 ```text
 MLOps_platform_iris/
 ├── .github/workflows/
-│   └── ci.yml                   # CI/CD pipeline (Validation, Training, Testing, Trivy)
+│   └── ci-cd.yaml              # Hardened CI/CD pipeline (Validation, Training, Evaluation Gate, Testing, Trivy)
 ├── data/
-│   └── iris.csv                 # Raw/Injected dataset
+│   └── iris.csv                # Raw/Injected dataset
 ├── k8s/
-│   ├── kserve-service.yaml      # KServe InferenceService CRD manifest
-│   ├── argocd-app.yaml          # Argo CD Application GitOps definition
+│   ├── kserve-service.yaml     # KServe InferenceService CRD manifest
+│   ├── argocd-app.yaml         # Argo CD Application GitOps definition
 │   └── monitoring/
 │       └── prometheus-monitor.yaml # Prometheus ServiceMonitor configuration
 ├── models/
-│   └── model.pkl                # Local trained model artifact
+│   └── model.pkl               # Local trained model artifact fallback
 ├── src/
-│   ├── app.py                   # FastAPI prediction service
-│   ├── train.py                 # Config-driven 5-model benchmarking & MLflow logging script
-│   ├── validate.py              # Great Expectations validation suite
-│   └── drift_monitor.py         # Evidently AI drift analysis runner
+│   ├── app.py                  # FastAPI prediction service (Loads from MLflow Registry)
+│   ├── train.py                # Training script with MLflow Model Registry integration
+│   ├── evaluate.py             # Model performance gating script (Enforces accuracy threshold)
+│   ├── validate.py             # Great Expectations validation suite
+│   └── drift_monitor.py        # Evidently AI drift analysis runner
 ├── terraform/
-│   ├── main.tf                  # AWS EKS & VPC network infrastructure definition
-│   ├── variables.tf             # Infrastructure variables
-│   └── outputs.tf               # Terraform output hooks
+│   ├── main.tf                 # Unified Kubernetes provider infrastructure definition
+│   ├── variables.tf            # Infrastructure variables
+│   └── outputs.tf              # Terraform output hooks
 ├── tests/
-│   └── test_api.py              # Pytest API integration tests
-├── Dockerfile                   # Production container definition
-├── params.yaml                  # Central pipeline configuration file
-└── requirements.txt             # Project Python dependencies
-
+│   └── test_api.py             # Pytest API integration tests
+├── Dockerfile                  # Production container definition
+├── params.yaml                 # Central pipeline configuration file
+└── requirements.txt            # Project Python dependencies
 
 ```
 
@@ -88,22 +103,21 @@ MLOps_platform_iris/
 
 ### 1. Environment Setup
 
-Clone the repository and activate a Python 3.10 virtual environment:
+Clone the repository and set up your virtual environment:
 
 ```bash
-git clone [https://github.com/your-username/MLOps_platform_iris.git](https://github.com/your-username/MLOps_platform_iris.git)
+git clone [https://github.com/articlesmli/MLOps_platform_iris.git](https://github.com/articlesmli/MLOps_platform_iris.git)
 cd MLOps_platform_iris
 
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-
 ```
 
 ### 2. Generate Dataset & Validate Data
 
-Generate the baseline dataset and run the Great Expectations validation suite:
+Generate the baseline dataset and execute the Great Expectations validation suite:
 
 ```bash
 # Generate baseline CSV
@@ -120,25 +134,18 @@ df.to_csv('data/iris.csv', index=False)
 # Validate dataset schema and value bounds
 python src/validate.py
 
-
 ```
 
-### 3. Multi-Model Benchmark Training & Experiment Tracking
+### 3. Model Training, Registry Registration & Evaluation Gate
 
-Train and evaluate the suite of **five machine learning models** defined in `params.yaml`, automatically logging each run and metric to MLflow:
+Train the model, register it to the MLflow Model Registry, and run the automated performance evaluation gate:
 
 ```bash
+# Train model & log to MLflow Registry
 python src/train.py
 
-
-```
-
-To view and compare all model runs side-by-side in the MLflow UI:
-
-```bash
-mlflow ui
-# Open http://localhost:5000 in your browser
-
+# Run quality gate to verify accuracy threshold (>= 90%)
+python src/evaluate.py
 
 ```
 
@@ -147,12 +154,11 @@ mlflow ui
 Launch the FastAPI serving app and execute automated pytest suites:
 
 ```bash
-# Start API locally
-uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+# Set PYTHONPATH and start API locally
+PYTHONPATH=. uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
 
 # In a separate terminal, run unit tests
-pytest tests/test_api.py
-
+PYTHONPATH=. pytest tests/test_api.py -v
 
 ```
 
@@ -164,26 +170,20 @@ Execute the Evidently AI monitoring engine to compare production inferences agai
 python src/drift_monitor.py
 # Generates drift_report.html
 
-
 ```
 
 ---
 
 ## ☁ Cloud Infrastructure & Kubernetes Deployment
 
-### Provision AWS Infrastructure via Terraform
+### Provision Infrastructure via Terraform
 
-Ensure AWS credentials are configured (`aws configure` or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` exported):
+Initialize and apply the unified Kubernetes Terraform provider:
 
 ```bash
 cd terraform
 terraform init
-terraform plan
 terraform apply -auto-approve
-
-# Configure local kubectl context
-aws eks update-kubeconfig --region us-east-1 --name iris-mlops-cluster
-
 
 ```
 
@@ -192,52 +192,9 @@ aws eks update-kubeconfig --region us-east-1 --name iris-mlops-cluster
 Apply the GitOps and KServe manifests to your Kubernetes cluster:
 
 ```bash
-kubectl create namespace kserve-test
 kubectl apply -f k8s/kserve-service.yaml
 kubectl apply -f k8s/argocd-app.yaml
 kubectl apply -f k8s/monitoring/prometheus-monitor.yaml
-
-
-```
-
----
-
-## ⚙️ Configuration (`params.yaml`)
-
-Centralize pipeline settings and define your suite of **five machine learning models** without editing core source code:
-
-```yaml
-base:
-  project: "mlops-universal-platform"
-  random_state: 42
-  test_size: 0.2
-
-data:
-  dataset_path: "data/iris.csv"
-  target_column: "target"
-
-models:
-  - name: "random_forest"
-    hyperparameters:
-      n_estimators: 100
-      max_depth: 8
-  - name: "logistic_regression"
-    hyperparameters:
-      C: 1.0
-      max_iter: 200
-  - name: "svc"
-    hyperparameters:
-      C: 1.0
-      kernel: "rbf"
-  - name: "knn"
-    hyperparameters:
-      n_neighbors: 5
-  - name: "decision_tree"
-    hyperparameters:
-      max_depth: 5
-
-training:
-  mlflow_experiment_name: "universal_classification_benchmark"
 
 ```
 
@@ -247,3 +204,6 @@ training:
 
 This project is licensed under the terms of the **MIT License**. See the `LICENSE` file for details.
 
+```
+
+```
