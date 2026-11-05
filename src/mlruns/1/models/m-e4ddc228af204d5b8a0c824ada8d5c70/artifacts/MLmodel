@@ -1,0 +1,24 @@
+artifact_path: /home/ivanovaml/MLOps_platform_iris/src/mlruns/1/models/m-e4ddc228af204d5b8a0c824ada8d5c70/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.10.12
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.7.2
+    skops_trusted_types:
+    - sklearn.tree._tree.Tree
+mlflow_version: 3.18.0
+model_id: m-e4ddc228af204d5b8a0c824ada8d5c70
+model_size_bytes: 1853283
+model_uuid: m-e4ddc228af204d5b8a0c824ada8d5c70
+prompts: null
+run_id: 8326ef10ef5b47d99a3ad2cd5b4abca3
+utc_time_created: '2026-11-05 11:51:13.355654'
