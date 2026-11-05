@@ -111,14 +111,22 @@ jobs:
         # 1. Install cert-manager (required for KServe webhooks)
         kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
         echo "Waiting for cert-manager to be ready..."
-        kubectl wait --for=condition=Available --timeout=120s deployment/cert-manager -n cert-manager
-        kubectl wait --for=condition=Available --timeout=120s deployment/cert-manager-cainjector -n cert-manager
-        kubectl wait --for=condition=Available --timeout=120s deployment/cert-manager-webhook -n cert-manager
+        kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager -n cert-manager
+        kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-cainjector -n cert-manager
+        kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-webhook -n cert-manager
 
         # 2. Install KServe CRDs and Controller
         kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml
         echo "Waiting for KServe controller deployment..."
-        kubectl rollout status deployment/kserve-controller-manager -n kserve --timeout=120s
+        
+        # Extended timeout and diagnostic fallback if rollout fails
+        if ! kubectl rollout status deployment/kserve-controller-manager -n kserve --timeout=300s; then
+          echo "=== KSERVE ROLLOUT FAILED - CLUSTER DIAGNOSTICS ==="
+          kubectl get pods -A
+          kubectl describe pods -n kserve
+          kubectl logs -n kserve deployment/kserve-controller-manager --tail=200 || true
+          exit 1
+        fi
 
         # 3. Allow webhook server certificates and port to fully stabilize
         echo "Stabilizing KServe webhook server..."
