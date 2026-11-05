@@ -117,8 +117,12 @@ jobs:
 
         # 2. Install KServe CRDs and Controller
         kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml
-        echo "Waiting for KServe controller..."
-        kubectl wait --for=condition=Available --timeout=120s deployment/kserve-controller-manager -n kserve || true
+        echo "Waiting for KServe controller deployment..."
+        kubectl rollout status deployment/kserve-controller-manager -n kserve --timeout=120s
+
+        # 3. Allow webhook server certificates and port to fully stabilize
+        echo "Stabilizing KServe webhook server..."
+        sleep 15
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
