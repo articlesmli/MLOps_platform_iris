@@ -106,7 +106,7 @@ jobs:
     - name: Set up Kind Cluster
       uses: helm/kind-action@v1.9.0
 
-    - name: Install Cert-Manager and KServe CRDs
+    - name: Install Cert-Manager and KServe (Raw Mode)
       run: |
         # 1. Install cert-manager (required for KServe webhooks)
         kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
@@ -115,20 +115,32 @@ jobs:
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-cainjector -n cert-manager
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-webhook -n cert-manager
 
-        # 2. Install KServe CRDs and Controller
-        kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml
-        echo "Waiting for KServe controller deployment..."
-        
-        # Extended timeout and diagnostic fallback if rollout fails
-        if ! kubectl rollout status deployment/kserve-controller-manager -n kserve --timeout=300s; then
-          echo "=== KSERVE ROLLOUT FAILED - CLUSTER DIAGNOSTICS ==="
-          kubectl get pods -A
-          kubectl describe pods -n kserve
-          kubectl logs -n kserve deployment/kserve-controller-manager --tail=200 || true
-          exit 1
-        fi
+        # 2. Download KServe manifest and remove kube-rbac-proxy container to prevent image pull errors
+        curl -sL https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml -o kserve.yaml
+        python3 -c "
+        with open('kserve.yaml', 'r') as f:
+            content = f.read()
+        # Remove the kube-rbac-proxy container block cleanly
+        parts = content.split('name: kube-rbac-proxy')
+        if len(parts) > 1:
+            # Reconstruct yaml omitting the rbx-proxy container definition block
+            rest = parts[1].split('---')[0]
+            # Find where the next container or volume starts
+            sub_parts = rest.split('securityContext:')
+            new_content = parts[0] + ('securityContext:' + sub_parts[1] if len(sub_parts) > 1 else '') + ('---'.join(parts[1].split('---')[1:]))
+            content = new_content
+        with open('kserve.yaml', 'w') as f:
+            f.write(content)
+        "
+        kubectl apply -f kserve.yaml
 
-        # 3. Allow webhook server certificates and port to fully stabilize
+        echo "Waiting for KServe controller deployment..."
+        kubectl rollout status deployment/kserve-controller-manager -n kserve --timeout=300s
+
+        # 3. Switch KServe to RawDeployment mode (avoids Knative/Istio dependencies)
+        kubectl patch configmap/inferenceservice-config -n kserve --type=strategic -p '{"data": {"deploy": "{\"defaultDeploymentMode\": \"RawDeployment\"}"}}'
+
+        # 4. Allow webhook server certificates and port to fully stabilize
         echo "Stabilizing KServe webhook server..."
         sleep 15
 
