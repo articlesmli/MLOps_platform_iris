@@ -9,10 +9,7 @@ terraform {
 }
 
 provider "kubernetes" {
-  host                   = "https://127.0.0.1:32771"
-  client_certificate     = file("/home/ivanovaml/.minikube/profiles/minikube/client.crt")
-  client_key             = file("/home/ivanovaml/.minikube/profiles/minikube/client.key")
-  cluster_ca_certificate = file("/home/ivanovaml/.minikube/ca.crt")
+  # Automatically uses the active kubectl context (Minikube locally, Kind in CI)
 }
 
 resource "kubernetes_manifest" "iris_kserve_service" {
