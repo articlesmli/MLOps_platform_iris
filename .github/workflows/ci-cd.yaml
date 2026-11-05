@@ -106,6 +106,20 @@ jobs:
     - name: Set up Kind Cluster
       uses: helm/kind-action@v1.9.0
 
+    - name: Install Cert-Manager and KServe CRDs
+      run: |
+        # 1. Install cert-manager (required for KServe webhooks)
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
+        echo "Waiting for cert-manager to be ready..."
+        kubectl wait --for=condition=Available --timeout=120s deployment/cert-manager -n cert-manager
+        kubectl wait --for=condition=Available --timeout=120s deployment/cert-manager-cainjector -n cert-manager
+        kubectl wait --for=condition=Available --timeout=120s deployment/cert-manager-webhook -n cert-manager
+
+        # 2. Install KServe CRDs and Controller
+        kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml
+        echo "Waiting for KServe controller..."
+        kubectl wait --for=condition=Available --timeout=120s deployment/kserve-controller-manager -n kserve || true
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       
