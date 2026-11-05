@@ -9,25 +9,47 @@ terraform {
 }
 
 provider "kubernetes" {
-  config_path    = var.kubeconfig_path
-  config_context = var.kubeconfig_context
+  config_path    = "~/.kube/config"
+  config_context = "minikube"
 }
 
 resource "kubernetes_manifest" "iris_kserve_service" {
+  field_manager {
+    force_conflicts = true
+  }
+
   manifest = {
     apiVersion = "serving.kserve.io/v1beta1"
     kind       = "InferenceService"
     metadata = {
       name      = "iris-inference-service"
-      namespace = "default"
-      labels    = { app = "iris-mlops" }
+      namespace = "kserve"
+      annotations = {
+        "serving.kserve.io/deploymentMode" = "Standard"
+      }
     }
     spec = {
       predictor = {
-        model = {
-          modelFormat = { name = "sklearn" }
-          storageUri  = "oci://ghcr.io/${var.image_name}/iris-api:${var.image_tag}"
-        }
+        containers = [
+          {
+            image = "ghcr.io/articlesmli/mlops_platform_iris/iris-api:${var.image_tag}"
+            ports = [
+              {
+                containerPort = 8080
+              }
+            ]
+            resources = {
+              requests = {
+                cpu    = "100m"
+                memory = "256Mi"
+              }
+              limits = {
+                cpu    = "500m"
+                memory = "512Mi"
+              }
+            }
+          }
+        ]
       }
     }
   }
