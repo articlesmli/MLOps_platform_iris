@@ -8,11 +8,18 @@ terraform {
   }
 }
 
+variable "image_tag" {
+  type    = string
+  default = "latest"
+}
+
+variable "kubeconfig_path" {
+  type    = string
+  default = "~/.kube/config"
+}
+
 provider "kubernetes" {
-  host                   = var.k8s_host
-  client_certificate     = var.k8s_client_certificate
-  client_key             = var.k8s_client_key
-  cluster_ca_certificate = var.k8s_cluster_ca_certificate
+  config_path = pathexpand(var.kubeconfig_path)
 }
 
 resource "kubernetes_manifest" "iris_kserve_service" {
@@ -23,7 +30,7 @@ resource "kubernetes_manifest" "iris_kserve_service" {
   manifest = {
     apiVersion = "serving.kserve.io/v1beta1"
     kind       = "InferenceService"
- metadata = {
+    metadata = {
       name      = "iris-inference-service"
       namespace = "kserve"
       annotations = {
