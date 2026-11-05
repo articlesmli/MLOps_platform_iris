@@ -9,7 +9,10 @@ terraform {
 }
 
 provider "kubernetes" {
-  # Automatically uses the active kubectl context (Minikube locally, Kind in CI)
+  host                   = var.k8s_host
+  client_certificate     = var.k8s_client_certificate
+  client_key             = var.k8s_client_key
+  cluster_ca_certificate = var.k8s_cluster_ca_certificate
 }
 
 resource "kubernetes_manifest" "iris_kserve_service" {
