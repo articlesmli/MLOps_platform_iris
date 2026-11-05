@@ -9,8 +9,10 @@ terraform {
 }
 
 provider "kubernetes" {
-  config_path    = "~/.kube/config"
-  config_context = "minikube"
+  host                   = "https://127.0.0.1:32771"
+  client_certificate     = file("/home/ivanovaml/.minikube/profiles/minikube/client.crt")
+  client_key             = file("/home/ivanovaml/.minikube/profiles/minikube/client.key")
+  cluster_ca_certificate = file("/home/ivanovaml/.minikube/ca.crt")
 }
 
 resource "kubernetes_manifest" "iris_kserve_service" {
