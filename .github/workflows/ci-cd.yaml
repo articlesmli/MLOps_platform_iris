@@ -39,10 +39,14 @@ jobs:
         "
         python src/validate.py
 
-    - name: Train & Evaluate Model
-      run: |
-        python src/train.py
-        python src/evaluate.py
+    - name: Train Model & Pin Dataset Version
+      run: python src/train.py
+
+    - name: Run Evaluation Gate
+      run: python src/evaluate.py --threshold 0.92
+
+    - name: Run Data Drift Check
+      run: python src/drift_monitor.py
 
     - name: Run Pytest
       env:
@@ -108,22 +112,18 @@ jobs:
 
     - name: Install Cert-Manager and KServe (Raw Mode)
       run: |
-        # 1. Install cert-manager (required for KServe webhooks)
         kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
         echo "Waiting for cert-manager to be ready..."
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager -n cert-manager
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-cainjector -n cert-manager
         kubectl wait --for=condition=Available --timeout=180s deployment/cert-manager-webhook -n cert-manager
 
-        # 2. Download KServe manifest and safely remove kube-rbac-proxy using PyYAML
         curl -sL https://github.com/kserve/kserve/releases/download/v0.11.0/kserve.yaml -o kserve.yaml
         pip install pyyaml
         python3 -c "
         import yaml
-
         with open('kserve.yaml', 'r') as f:
             docs = list(yaml.safe_load_all(f))
-
         new_docs = []
         for doc in docs:
             if doc and doc.get('kind') == 'Deployment' and doc.get('metadata', {}).get('name') == 'kserve-controller-manager':
@@ -131,19 +131,13 @@ jobs:
                 doc['spec']['template']['spec']['containers'] = [c for c in containers if c.get('name') != 'kube-rbac-proxy']
             if doc:
                 new_docs.append(doc)
-
         with open('kserve.yaml', 'w') as f:
             yaml.safe_dump_all(new_docs, f)
         "
         kubectl apply -f kserve.yaml
-
         echo "Waiting for KServe controller deployment..."
         kubectl rollout status deployment/kserve-controller-manager -n kserve --timeout=300s
-
-        # 3. Switch KServe to RawDeployment mode (avoids Knative/Istio dependencies)
         kubectl patch configmap/inferenceservice-config -n kserve --type=strategic -p '{"data": {"deploy": "{\"defaultDeploymentMode\": \"RawDeployment\"}"}}'
-
-        # 4. Allow webhook server certificates and port to fully stabilize
         echo "Stabilizing KServe webhook server..."
         sleep 15
 

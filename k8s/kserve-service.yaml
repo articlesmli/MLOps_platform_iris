@@ -1,11 +1,10 @@
 apiVersion: "serving.kserve.io/v1beta1"
 kind: "InferenceService"
 metadata:
-  name: "iris-model"
-  namespace: "kserve-test"
+  name: "iris-classifier"
 spec:
   predictor:
     model:
       modelFormat:
-        name: sklearn
-      storageUri: "s3://my-mlflow-bucket/artifacts/models/iris_model"
+        name: mlflow
+      storageUri: "models:/iris_classifier/production"

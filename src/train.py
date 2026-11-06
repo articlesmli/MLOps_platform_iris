@@ -1,6 +1,8 @@
+# src/train.py
 from pathlib import Path
 import yaml
 import pickle
+import hashlib
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -26,8 +28,12 @@ def train_model():
         raise FileNotFoundError(f"Dataset not found at: {data_path}")
         
     df = pd.read_csv(data_path)
-    target_col = params["data"]["target_column"]
     
+    # --- Dataset Version Pinning (Addresses the comment) ---
+    data_hash = hashlib.sha256(df.to_csv().encode()).hexdigest()[:10]
+    print(f"Dataset version hash pinned: {data_hash}")
+
+    target_col = params["data"]["target_column"]
     X = df.drop(columns=[target_col])
     y = df[target_col]
     
@@ -54,13 +60,15 @@ def train_model():
         
         print(f"Model Evaluation -> Accuracy: {acc:.4f}, F1-Score: {f1:.4f}")
         
-        # Log parameters and metrics
+        # Log parameters, metrics, and dataset hash tag
         mlflow.log_param("test_size", test_size)
         mlflow.log_param("random_state", random_state)
+        mlflow.log_param("dataset_hash", data_hash)
+        mlflow.set_tag("dataset_version_hash", data_hash)
         mlflow.log_metric("accuracy", acc)
         mlflow.log_metric("f1_score", f1)
         
-        # Save locally
+        # Save locally for evaluate.py
         models_dir = root_dir / "models"
         models_dir.mkdir(exist_ok=True)
         m_path = models_dir / "model.pkl"
@@ -74,7 +82,6 @@ def train_model():
             model_name = "iris_classification_model"
             print(f"Registering model '{model_name}' to MLflow Registry...")
             
-            # Log and register model artifact
             mlflow.sklearn.log_model(
                 model, 
                 artifact_path="model",
