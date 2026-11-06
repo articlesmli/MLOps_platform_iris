@@ -1,8 +1,8 @@
 # Enterprise MLOps Platform (`MLOps_platform_iris`)
 
-An end-to-end, enterprise-grade MLOps platform built with a modular, config-driven architecture[cite: 1]. While pre-configured with the **Iris dataset** as a baseline smoke test[cite: 1], the platform is designed to seamlessly swap out datasets and models for enterprise computer vision, NLP, or tabular workflows[cite: 1].
+An end-to-end, enterprise-grade MLOps platform built with a modular, config-driven architecture (`params.yaml`). While pre-configured with the **Iris dataset** and a multi-model classification benchmark as a baseline smoke test, the platform is designed to seamlessly swap out datasets and models for enterprise computer vision, NLP, or tabular workflows.
 
-This platform leverages modern Cloud Native, GitOps, IaC, and Observability patterns[cite: 1].
+This platform leverages modern Cloud Native, GitOps, IaC, and Observability patterns.
 
 ---
 
@@ -15,8 +15,8 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
                                   +-----------+-----------+
                                               |
  +-------------------+             +----------v----------+             +-------------------+
- | Great Expectations | ---------> | Multi-Model Training| ---------> |  MLflow Registry  |
- | (Data Validation) |             |     (train.py)      |             | & Artifact Store  |
+ | Great Expectations | ---------> | Optuna Hyper-Tune & | ---------> |  MLflow Registry  |
+ | (Data Validation) |             | Multi-Model Training|             | & Artifact Store  |
  +-------------------+             +----------+----------+             +---------+---------+
                                               |                                  |
                                    +----------v----------+                       |
@@ -43,13 +43,13 @@ This platform leverages modern Cloud Native, GitOps, IaC, and Observability patt
 * **Infrastructure as Code (IaC):** Terraform (Unified Kubernetes Provider, AWS EKS, VPC)
 
 
-* **Containerization & Orchestration:** Docker, Kubernetes, KServe (CRD inference serving)
+* **Containerisation & Orchestration:** Docker, Kubernetes, KServe (CRD inference serving)
 
 
 * **CI/CD & GitOps:** GitHub Actions (Hardened Pipeline with automated quality gating), Argo CD
 
 
-* **Model Governance:** MLflow (Multi-model tracking & Model Registry integration)
+* **Model Governance & Optimization:** MLflow (Multi-model tracking & Model Registry), Optuna (Automated hyperparameter tuning)
 
 
 * **Data Quality & Security:** Great Expectations, Trivy Vulnerability Scans
@@ -78,7 +78,7 @@ MLOps_platform_iris/
 │   └── model.pkl               # Local trained model artifact fallback
 ├── src/
 │   ├── app.py                  # FastAPI prediction service (Loads from MLflow Registry)
-│   ├── train.py                # Training script with MLflow Model Registry integration
+│   ├── train.py                # Multi-model training script with Optuna & MLflow integration
 │   ├── evaluate.py             # Model performance gating script (Enforces accuracy threshold)
 │   ├── validate.py             # Great Expectations validation suite
 │   └── drift_monitor.py        # Evidently AI drift analysis runner
@@ -89,7 +89,7 @@ MLOps_platform_iris/
 ├── tests/
 │   └── test_api.py             # Pytest API integration tests
 ├── Dockerfile                  # Production container definition
-├── params.yaml                 # Central pipeline configuration file
+├── params.yaml                 # Central pipeline & hyperparameter configuration
 └── requirements.txt            # Project Python dependencies
 
 ```
@@ -133,12 +133,12 @@ python src/validate.py
 
 ```
 
-### 3. Model Training, Registry Registration & Evaluation Gate
+### 3. Model Training, Optuna Tuning & Evaluation Gate
 
-Train the model, register it to the MLflow Model Registry, and run the automated performance evaluation gate:
+Run multi-model benchmark training (with optional Optuna hyperparameter optimization configured in `params.yaml`), register the best model to the MLflow Model Registry, and execute the automated evaluation gate:
 
 ```bash
-# Train model & log to MLflow Registry
+# Train models & log metrics/artifacts to MLflow
 python src/train.py
 
 # Run quality gate to verify accuracy threshold (>= 90%)
@@ -175,7 +175,7 @@ python src/drift_monitor.py
 
 ### Provision Infrastructure via Terraform
 
-Initialize and apply the unified Kubernetes Terraform provider:
+Initialise and apply the unified Kubernetes Terraform provider:
 
 ```bash
 cd terraform
