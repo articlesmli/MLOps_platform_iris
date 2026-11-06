@@ -1,4 +1,4 @@
-# Enterprise MLOps Platform (`MLOps_platform_iris`)
+# Enterprise MLOps Platform
 
 An end-to-end, enterprise-grade MLOps platform built with a modular, config-driven architecture (`params.yaml`). While pre-configured with the **Iris dataset** and a multi-model classification benchmark as a baseline smoke test, the platform is designed to seamlessly swap out datasets and models for enterprise computer vision, NLP, or tabular workflows.
 
